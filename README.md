@@ -1,5 +1,5 @@
 # ai_agent
-Ai_ LLP Agent
+Ai_ LLM Agent
 # 🤖 ai_agent — A Toy Claude Code Using Gemini API
 
 Welcome to `ai_agent`, a CLI-based experimental project that mimics a simplified version of Anthropic's Claude Code, powered by **Google's free Gemini API**.
