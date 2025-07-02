@@ -2,6 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 from google import  generativeai as genai
+from google.genai import types
 
 
 # Load environment variables
@@ -27,10 +28,10 @@ genai.configure(api_key=api_key)
 
 # Create the model 
 model = genai.GenerativeModel(model_name="gemini-2.0-flash-001")
-
+messages = [ {"role": "user", "parts":[prompt]}]
 # Generate Response
 response = model.generate_content(
-   contents="Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum."
+   contents=messages
 )
 print(response.text)
 print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
