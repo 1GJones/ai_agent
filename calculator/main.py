@@ -1,5 +1,4 @@
 import sys
-
 from config import MAX_READ_CHARACTERS
 from functions.get_files_info import get_file_content
 from calculator.pkg.calculator import Calculator

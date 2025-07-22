@@ -1,5 +1,6 @@
 import os
 from config import MAX_READ_CHARACTERS
+
 def get_files_info(working_directory, directory=None):
     try:
         # Use the working directory if no subdirectory is specified
