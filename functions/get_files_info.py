@@ -1,9 +1,9 @@
 import os
 from config import MAX_READ_CHARACTERS
 from google.generativeai import types
-
-from functions.run_python import run_python_file 
+ 
   
+
 def get_files_info(working_directory, directory=None):
     try:
         # Use the working directory if no subdirectory is specified
@@ -38,131 +38,8 @@ def get_files_info(working_directory, directory=None):
     except Exception as e:
         return f"Error: {str(e)}"
     
-def get_file_content(working_directory, file_path):
-    try:  
-        full_path = os.path.abspath(os.path.join(working_directory, file_path ))
-        base_path = os.path.abspath(working_directory)
         
-        if not full_path.startswith(base_path):
-            return f'Error: Cannot list "{file_path}" as it is outside the permitted working directory'
-
         
-        if not os.path.exists(full_path):
-            return f'Error: File not found or is not a regular file: "{file_path}"'
-    
-        if not os.path.isfile(full_path):
-            return f'Error: File "{file_path}" does not a exist'
-    
-        with open(full_path, "r", encoding="utf-8") as f:
-            content = f.read(MAX_READ_CHARACTERS)
-        
-        if len(content) > MAX_READ_CHARACTERS:
-            return content[:MAX_READ_CHARACTERS] + f'\n\n[...File "{file_path}" truncated at {MAX_READ_CHARACTERS} characters]' 
-        return content
-
-    except Exception as e:
-        return f"Error: {str(e)}"    
-        
-def write_file(working_directory, file_path, content):
-    try:
-        abs_working_path = os.path.abspath(working_directory)
-        abs_file_path = os.path.abspath(os.path.join(working_directory,file_path))
-        
-        # Check if file is within working_directory
-        if not abs_file_path.startswith(abs_working_path):
-            return f'Error: Cannot write to "{file_path}" as it is outside the permitted working directory'
-
-
-
-        # Ensure parent directories exist
-        os.makedirs(os.path.dirname(abs_file_path), exist_ok= True)
-        
-        # Write to file
-        with open(abs_file_path, "w", encoding="utf-8") as f:
-            f.write(content)
-            f.truncate
-            
-        
-        return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
-    except Exception as e:
-        return f"Error: {str(e)}"   
-    
-def call_function(function_call_part, verbose=False):
-    function_map = {
-    "get_file_content": get_file_content,
-    "write_file": write_file,
-    "run_python_file": run_python_file,
-    "get_files_info": get_files_info
-}
-    function_name = function_call_part.name
-    args = dict(function_call_part.args)
-
-    
-    # 🧪 Log what the LLM gave us
-    if verbose:
-        print(f"🔍 Function to call: {function_name}")
-        print(f"🧾 Raw args received: {args}")
-
-    # Add required working_directory
-    args["working_directory"] = "./calculator"
-    
-    
-    # 🛠️ Handle vague "run test suite" style prompts
-    if function_name == "run_python_file":
-        # If no file_path was provided, default to "tests.py"
-        if "file_path" not in args:
-            if any(keyword in args.get("task", "").lower() for keyword in ["test", "suite"]):
-                args["file_path"] = "tests.py"
-            else:
-                # Use fallback anyway — optional
-                args["file_path"] = "tests.py"
-
-    if function_name not in function_map:
-        return types.Content(
-            role="tool",
-            parts=[
-                types.Part.from_function_response(
-                    name=function_name,
-                    response={"error": f"Unknown function: {function_name}"},
-                )
-            ],
-        )
-        
-    
-    
-    # Call the actual function with unpacked keyword arguments
-    try:
-        function_result = function_map[function_name](**args)
-    except Exception as e:
-        return types.Content(
-            role="tool",
-            parts=[
-                types.Part.from_function_response(
-                    name=function_name,
-                    response={"error": str(e)},
-                )
-            ],
-        )
-
-    # Wrap the result into a valid response format
-    result_content = types.Content(
-        role="tool",
-        parts=[
-            types.Part.from_function_response(
-                name=function_name,
-                response={"result": function_result},
-            )
-        ],
-    )
-
-    # If verbose, print the function result
-    if verbose:
-        print(f"-> {result_content.parts[0].function_response.response}")
-
-    return result_content
-     
-    
-    
 schema_get_files_info = types.FunctionDeclaration(
     name ="get_files_info",
     description= "Lists files in the specified directory along with their sizes, constrained to the working directory.",

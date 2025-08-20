@@ -1,6 +1,8 @@
 import os
 import subprocess
 import sys
+
+
 def run_python_file(working_directory, file_path, args=[]):
     
     # Use the working directory if no subdirectory is specified
@@ -35,7 +37,7 @@ def run_python_file(working_directory, file_path, args=[]):
             if not stdout.strip() and not stderr.strip():
                 return "No output produced."
             
-            output = f"STDOUT:\n{stdout}\nSTDERR:\n{stderr}"
+            output = stdout + stderr
             if completed_process.returncode != 0:
                 output += f"\nProcess exited with code {completed_process.returncode}"
                 

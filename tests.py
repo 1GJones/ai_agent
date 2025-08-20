@@ -1,13 +1,13 @@
 import os
-from functions.get_files_info import  write_file
+import unittest
+from functions.write_file import  write_file
 from functions.run_python import run_python_file
-
 # Define working directory(the root of your project)
 working_dir = os.path.abspath(os.path.dirname(__file__))
 
      
 if __name__ == "__main__":
-    
+    unittest.main()
 
     print(write_file("calculator", "lorem.txt", "wait, this isn't lorem ipsum"))
     print(write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet"))    

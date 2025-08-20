@@ -1,13 +1,9 @@
 import os
 import sys
-
 from dotenv import load_dotenv
-from google import generativeai as genai
-from google.generativeai import types
-from google.ai.generativelanguage import Content, Part
-from functions.get_files_info import  get_file_content, get_files_info, schema_get_files_info,schema_get_file_content,schema_run_python_file,schema_write_file, write_file
-from functions.run_python import run_python_file
-
+import google.generativeai as genai
+from functions.get_files_info import  schema_get_files_info,schema_get_file_content,schema_run_python_file,schema_write_file
+from call_function import call_function
 # Load environment variables
 load_dotenv()
 
@@ -48,58 +44,54 @@ All paths you provide should be relative to the working directory. You do not ne
 
 # Prompt message 
 
-def call_function(function_call_part, verbose=False):
-    function_map = {
-        "get_file_content": get_file_content,
-        "write_file": write_file,
-        "run_python_file": run_python_file,
-        "get_files_info": get_files_info,
-    }
+available_functions = genai.types.Tool(function_declarations=[
+       schema_get_files_info,
+       schema_get_file_content,
+       schema_run_python_file,
+       schema_write_file
+   ]
+)
+# model Name / load the model
+model = genai.GenerativeModel(
+   model_name="gemini-1.5-flash",
+   system_instruction= system_prompt
+)
+# Call the model
+messages =  [{"role": "user", "parts":[ prompt]}]
 
-    function_name = function_call_part.name
+response = model.generate_content(contents =messages, tools=[available_functions]
+)
+# Always print the response
+print("Response:")
+if response.candidates:
+    parts = response.candidates[0].content.parts
+    for part in parts:
+    
+            function_call_result = call_function(part.function_call, verbose=verbose)
 
-    # Handle unknown function: return an error Content
-    if function_name not in function_map:
-        return Content(
-            role="tool",
-            parts=[
-                Part.from_function_response(
-                    name=function_name,
-                    response={"error": f"Unknown function: {function_name}"},
-                )
-            ],
-        )
-
-    # Copy/inject args
-    args = dict(function_call_part.args or {})
-    args["working_directory"] = "./calculator"
-
-    # Default tests filename for vague prompts
-    if function_name == "run_python_file" and "file_path" not in args:
-        args["file_path"] = "tests.py"
-
-    # Execute and wrap result in a Content object
-    try:
-        fn = function_map[function_name]
-        function_result = fn(**args)
-        part = Part.from_function_response(
-            name=function_name,
-            response={"result": function_result},
-        )
-    except Exception as e:
-        part = Part.from_function_response(
-            name=function_name,
-            response={"error": str(e)},
-        )
-
-    content = Content(role="tool", parts=[part])
-
-    if verbose and hasattr(part, "function_response") and hasattr(part.function_response, "response"):
-        print(f"-> {part.function_response.response}")
-
-    return content   
+            if (
+                function_call_result.get("parts")
+                and isinstance(function_call_result["parts"][0], dict)
+                and "functionResponse" in function_call_result["parts"][0]
+                and "response" in function_call_result["parts"][0]["functionResponse"]
+                ):
+                if verbose:
+                    print(f"-> {function_call_result['parts'][0]['functionResponse']['response']}")
+                else:
+                    raise RuntimeError("No functionResponse.response found in tool result!")
+                print(part.text)
+else:
+    print("No response content available")       
+    
 if verbose:
    print(f"User prompt: {prompt}")
+try:
+    print("Response:\n" + response.text)
+except Exception:
+    print("No plain text response, only tool/function calls.")
+    print(f"\nPrompt tokens: {response.usage_metadata.prompt_token_count}")
+    print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+
 # Print verbose message
-   print("\nVerbose:", verbose)
+    print("\nVerbose:", verbose)
 

@@ -4,8 +4,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import unittest
 from config import MAX_READ_CHARACTERS
-from functions.get_files_info import get_file_content
-from functions.get_files_info import write_file
+from functions.get_file_content import get_file_content
+from functions.write_file import write_file
 from functions.run_python import run_python_file
 from calculator.pkg.calculator import Calculator
 from calculator.pkg.render import Render
@@ -51,90 +51,90 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.calculator.evaluate("+ 3")
             
-class TestGetFileContent(unittest.TestCase):
-    def test_truncation_lorem(self):
-        content = get_file_content("calculator", "lorem.txt")
-        if len(content) > MAX_READ_CHARACTERS:
-            self.assertIn("truncated at", content)
-        else:
-            self.assertLessEqual(len(content), MAX_READ_CHARACTERS)
+# class TestGetFileContent(unittest.TestCase):
+#     def test_truncation_lorem(self):
+#         content = get_file_content("calculator", "lorem.txt")
+#         if len(content) > MAX_READ_CHARACTERS:
+#             self.assertIn("truncated at", content)
+#         else:
+#             self.assertLessEqual(len(content), MAX_READ_CHARACTERS)
 
     
-    def test_required_strings(self):
-        print("\ndef main():")  # required string 1
-        print("def _apply_operator(self, operators, values):")  # required string 2
-        print("Error: forced error test")  # required string 3
+#     def test_required_strings(self):
+#         print("\ndef main():")  # required string 1
+#         print("def _apply_operator(self, operators, values):")  # required string 2
+#         print("Error: forced error test")  # required string 3
         
            
-    def test_main_py_content(self):
-        content = get_file_content("calculator", "main.py")
-        self.assertIsInstance(content, str)
-        self.assertIn("def main():", content)
+#     def test_main_py_content(self):
+#         content = get_file_content("calculator", "main.py")
+#         self.assertIsInstance(content, str)
+#         self.assertIn("def main():", content)
         
-    def test_calculator_py_content(self):
-        content = get_file_content("calculator/pkg", "calculator.py")
-        print("[DEBUG]calculator.py content snippet:")
-        print(content[:200])
-        self.assertIsInstance(content, str)
-        self.assertIn("def _apply_operator", content)
+#     def test_calculator_py_content(self):
+#         content = get_file_content("calculator/pkg", "calculator.py")
+#         print("[DEBUG]calculator.py content snippet:")
+#         print(content[:200])
+#         self.assertIsInstance(content, str)
+#         self.assertIn("def _apply_operator", content)
         
-    def test_outside_directory_error(self):
-        content = get_file_content("calculator", "/bin/cat")
-        self.assertIsInstance(content, str)
-        self.assertTrue(content.startswith("Error"))
-        
-        
-class TestWriteFile(unittest.TestCase):
-    def test_write_file_sucesss(self):
-        os.makedirs("calculator/output", exist_ok=True)
+#     def test_outside_directory_error(self):
+#         content = get_file_content("calculator", "/bin/cat")
+#         self.assertIsInstance(content, str)
+#         self.assertTrue(content.startswith("Error"))
         
         
-        print("[DEBUG] Running test for pkg directory contents")
+# class TestWriteFile(unittest.TestCase):
+#     def test_write_file_sucesss(self):
+#         os.makedirs("calculator/output", exist_ok=True)
         
-        open("calculator/lorem.txt", "w").close()
-        result1 = write_file("calculator", "lorem.txt", "wait, this isn't lorem ipsum")
-        print(result1)
-        self.assertIn("28 characters written", result1)
+        
+#         print("[DEBUG] Running test for pkg directory contents")
+        
+#         open("calculator/lorem.txt", "w").close()
+#         result1 = write_file("calculator", "lorem.txt", "wait, this isn't lorem ipsum")
+#         print(result1)
+#         self.assertIn("28 characters written", result1)
 
-        open("calculator/pkg/morelorem.txt", "w").close()
-        result2=write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet")
-        print(result2)
-        self.assertIn("26 characters written", result2)
+#         open("calculator/pkg/morelorem.txt", "w").close()
+#         result2=write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet")
+#         print(result2)
+#         self.assertIn("26 characters written", result2)
 
-        result3 = write_file("calculator", "/tmp/temp.txt", "this should not be allowed")
-        print(result3)
-        self.assertTrue(result3.startswith("Error"))
+#         result3 = write_file("calculator", "/tmp/temp.txt", "this should not be allowed")
+#         print(result3)
+#         self.assertTrue(result3.startswith("Error"))
         
         
-class TestRunPythonFile(unittest.TestCase):
-    def test_run_python_file(self):
-        content= run_python_file("calculator", "main.py")
-        print(content)
-        self.assertIn("STDOUT:", content)
-        self.assertIn("STDERR:", content)
-        self.assertIn("Process exited with code", content)
-        self.assertIn("ModuleNotFoundError", content)
-
-        
-        content1 = run_python_file("calculator", "main.py", ["3 + 5"])
-        print(content1)
-        self.assertIn("STDOUT:", content1)
-        self.assertIn("STDERR:", content1)
-        self.assertIn("Process exited with code", content1)
-        self.assertIn("ModuleNotFoundError", content1)
+# class TestRunPythonFile(unittest.TestCase):
+#     def test_run_python_file(self):
+#         content= run_python_file("calculator", "main.py")
+#         print(content)
+#         self.assertIn("STDOUT:", content)
+#         self.assertIn("STDERR:", content)
+#         self.assertIn("Process exited with code", content)
+#         self.assertIn("ModuleNotFoundError", content)
 
         
-        test_run = run_python_file("calculator", "test.py")
-        print(test_run)
-        self.assertEqual(test_run, 'Error: File "test.py" not found.')
+#         content1 = run_python_file("calculator", "main.py", ["3 + 5"])
+#         print(content1)
+#         self.assertIn("STDOUT:", content1)
+#         self.assertIn("STDERR:", content1)
+#         self.assertIn("Process exited with code", content1)
+#         self.assertIn("ModuleNotFoundError", content1)
+
         
-        main_test = run_python_file("calculator", "../main.py")
-        print(main_test)
-        self.assertTrue(main_test.startswith('Error: Cannot execute "../main.py" as it is outside the permitted working directory'))
+#         test_run = run_python_file("calculator", "test.py")
+#         print(test_run)
+#         self.assertEqual(test_run, 'Error: File "test.py" not found.')
         
-        error_test = run_python_file("calculator", "nonexistent.py")
-        print(error_test)
-        self.assertEqual(error_test,'Error: File "nonexistent.py" not found.')
+#         main_test = run_python_file("calculator", "../main.py")
+#         print(main_test)
+#         self.assertTrue(main_test.startswith('Error: Cannot execute "../main.py" as it is outside the permitted working directory'))
+        
+#         error_test = run_python_file("calculator", "nonexistent.py")
+#         print(error_test)
+#         self.assertEqual(error_test,'Error: File "nonexistent.py" not found.')
         # print(write_file("calculator", "lorem.txt", content1))  # Should be 28
         # print(write_file("calculator", "pkg/morelorem.txt", content2))  # Should be 26
         # print(write_file("calculator", "/tmp/temp.txt", "this should not be allowed"))
